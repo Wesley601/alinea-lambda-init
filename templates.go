@@ -1,9 +1,18 @@
 package main
 
-const IndexFile = `import { APIGatewayEvent } from 'aws-lambda';
+const IndexFile = `{{- if .HasApiGateway }}
+import { APIGatewayEvent } from 'aws-lambda';
+{{- end }}
+{{- if .HasSqs }}
+import { SQSEvent } from 'aws-lambda';
+{{- end }}
+{{- if .HasEventBridge }}
+import { EventBridgeEvent } from 'aws-lambda';
+{{- end }}
+
 import { {{ .HandlerName }} } from './{{ .LambdaFileName }}';
 
-export const handler = async (event: APIGatewayEvent) => {
+{{ if .HasApiGateway }}export const handler = async (event: APIGatewayEvent) => {
   const result = await {{ .HandlerName }}();
 
   return {
@@ -13,7 +22,27 @@ export const handler = async (event: APIGatewayEvent) => {
     },
     body: JSON.stringify(result.data),
   };
-};
+};{{ end }}
+{{ if .HasSqs }}export const handlerSQS = async (event: SQSEvent) => {
+  await Promise.all(
+    event.Records.map(({ body }) => {
+      const body = JSON.parse(body);
+
+      console.log(body);
+
+      return {{ .HandlerName }}(body);
+    }),
+  );
+
+  return true;
+};{{ end }}
+{{ if .HasEventBridge }}export const handlerEventBridge = async (event: EventBridgeEvent<string, any>) => {
+  const { detail } = event;
+
+  const result = await {{ .HandlerName }}(detail);
+
+  return result.success;
+};{{ end}}
 `
 
 const HandlerFile = `export const {{ .HandlerName }} = () => {

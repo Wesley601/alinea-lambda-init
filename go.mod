@@ -1,4 +1,4 @@
-module wesley601/alinea-lambda-init
+module wesley601/ali
 
 go 1.20
 
