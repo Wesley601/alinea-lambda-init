@@ -4,7 +4,7 @@ const IndexFile = `import { APIGatewayEvent } from 'aws-lambda';
 import { {{ .HandlerName }} } from './{{ .LambdaFileName }}';
 
 export const handler = async (event: APIGatewayEvent) => {
-  const result = await {{ .HandlerName }}Handler();
+  const result = await {{ .HandlerName }}();
 
   return {
     statusCode: result.success ? 200 : 400,
@@ -13,7 +13,8 @@ export const handler = async (event: APIGatewayEvent) => {
     },
     body: JSON.stringify(result.data),
   };
-};`
+};
+`
 
 const HandlerFile = `export const {{ .HandlerName }} = () => {
   console.log('Hello World!');
@@ -24,7 +25,8 @@ const HandlerFile = `export const {{ .HandlerName }} = () => {
       message: 'Hello World!',
     },
   };
-};`
+};
+`
 
 const SpecFile = `import {
   connectMemory,
@@ -37,7 +39,8 @@ describe('{{ .SpecName }}', () => {
   beforeAll(async () => await connectMemory());
   beforeEach(async () => await clearDB());
   afterAll(async () => await closeDB());
-});`
+});
+`
 
 const PackageFile = `{
   "name": "{{ .DomainName }}/{{ .LambdaFileName }}",
@@ -55,4 +58,5 @@ const PackageFile = `{
   "keywords": [],
   "author": "",
   "license": "ISC"
-}`
+}
+`
