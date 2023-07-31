@@ -1,17 +1,42 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
+	"strings"
 	"text/template"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func main() {
+	var name string
+	var domain string
+
+	flag.StringVar(&name, "name", "", "Lambda name")
+	flag.StringVar(&domain, "domain", "", "Lambda domain name")
+	flag.Parse()
+
+	if name == "" {
+		log.Fatal("Lambda name is required")
+	}
+
+	if domain == "" {
+		log.Fatal("Lambda domain name is required")
+	}
+
+	caser := cases.Title(language.AmericanEnglish)
+	sName := strings.Split(name, "-")
+	firstName := sName[0]
+	handlerName := firstName + caser.String(strings.Join(sName[1:], ""))
+
 	l := Lambda{
-		HandlerName:    "helloWorld",
-		LambdaFileName: "hello-world",
-		DomainName:     "@hello-world",
-		SpecName:       "hello world",
+		HandlerName:    handlerName,
+		LambdaFileName: name,
+		DomainName:     domain,
+		SpecName:       strings.Join(sName, " "),
 	}
 
 	if err := l.CreateFile(PackageFile, "", "package.json"); err != nil {
