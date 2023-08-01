@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -13,13 +12,18 @@ import (
 )
 
 func main() {
-	data, err := parsePackage()
+	data, err := ParsePackage()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	domainName := data["name"].(string)
+	value, ok := data["name"].(string)
+	if !ok {
+		log.Fatal("Package name is invalid or not exists")
+	}
+
+	domainName := "@" + value
 	var differentDomain string
 	var lambdaName string
 	var hasApiGateway string
@@ -57,7 +61,7 @@ func main() {
 	}
 }
 
-func parsePackage() (map[string]interface{}, error) {
+func ParsePackage() (map[string]interface{}, error) {
 	packageFile, err := os.ReadFile("package.json")
 	if err != nil {
 		return nil, err
@@ -89,18 +93,4 @@ func CreateHandlerName(sName []string) string {
 	}
 
 	return firstName + strings.Join(names, "")
-}
-
-func ParseFlags(name *string, domain *string) {
-	flag.StringVar(name, "name", "", "Lambda name")
-	flag.StringVar(domain, "domain", "", "Lambda domain name")
-	flag.Parse()
-
-	if *name == "" {
-		log.Fatal("Lambda name is required")
-	}
-
-	if *domain == "" {
-		log.Fatal("Lambda domain name is required")
-	}
 }
